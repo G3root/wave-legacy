@@ -1,16 +1,26 @@
 "use server";
+import invariant from "tiny-invariant";
 
 import { cache } from "react";
-
-import { getServerSession as getNextAuthServerSession } from "next-auth";
 
 import { NextAuthConfig } from "./auth-options";
 import { db } from "@/server/db";
 import { eq } from "drizzle-orm";
 import { user as userSchema } from "@/server/db/schema";
+import { getServerSession } from "next-auth";
+
+export const getNextAuthSession = () => {
+  return getServerSession(NextAuthConfig);
+};
+
+export const getRequiredNextAuthSession = async () => {
+  const session = await getNextAuthSession();
+  invariant(session, "Session not found");
+  return session;
+};
 
 export const getServerComponentSession = cache(async () => {
-  const session = await getNextAuthServerSession(NextAuthConfig);
+  const session = await getNextAuthSession();
 
   if (!session || !session.user?.email) {
     return { user: null, session: null };

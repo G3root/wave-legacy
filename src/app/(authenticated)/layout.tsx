@@ -2,8 +2,7 @@ import React from "react";
 
 import { redirect } from "next/navigation";
 
-import { getServerSession } from "next-auth";
-import { NextAuthConfig } from "@/lib/next-auth/auth-options";
+import { getNextAuthSession } from "@/lib/next-auth/get-server-component-session";
 
 export type AuthenticatedLayoutProps = {
   children: React.ReactNode;
@@ -12,7 +11,7 @@ export type AuthenticatedLayoutProps = {
 export default async function AuthenticatedLayout({
   children,
 }: AuthenticatedLayoutProps) {
-  const session = await getServerSession(NextAuthConfig);
+  const session = await getNextAuthSession();
 
   if (!session) {
     redirect("/signin");

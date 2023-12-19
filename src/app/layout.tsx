@@ -3,8 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { cx } from "class-variance-authority";
 import { NextAuthProvider } from "@/providers/next-auth";
-import { getServerSession } from "next-auth";
-import { NextAuthConfig } from "@/lib/next-auth/auth-options";
+import { getNextAuthSession } from "@/lib/next-auth/get-server-component-session";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,7 +17,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(NextAuthConfig);
+  const session = await getNextAuthSession();
   return (
     <html lang="en">
       <body className={cx("min-h-screen flex flex-col", inter.className)}>
