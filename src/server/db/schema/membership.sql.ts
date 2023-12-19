@@ -15,7 +15,7 @@ export const membership = sqliteTable(
     workspaceId: integer("workspace_id")
       .notNull()
       .references(() => workspace.id, { onDelete: "cascade" }),
-    userId: integer("user_id").references(() => user.id, {
+    userId: text("user_id").references(() => user.id, {
       onDelete: "cascade",
     }),
 

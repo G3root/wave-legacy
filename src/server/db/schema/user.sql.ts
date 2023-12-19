@@ -5,7 +5,7 @@ import { membership } from "./membership.sql";
 export const GLOBAL_ROLE = ["super-admin", "customer"] as const;
 
 export const user = sqliteTable("user", {
-  id: integer("id").primaryKey(),
+  id: text("id").notNull().primaryKey(),
   publicId: text("public_id").notNull().unique(),
   name: text("name"),
   email: text("email").notNull(),
