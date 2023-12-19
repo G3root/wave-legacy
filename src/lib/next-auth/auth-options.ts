@@ -1,13 +1,14 @@
 import NextAuth from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 import type { AuthOptions } from "next-auth";
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
+
 import { env } from "@/env.mjs";
 
 import { db } from "@/server/db";
+import { SQLiteDrizzleAdapter } from "./adapter";
 
 export const NextAuthConfig = {
-  adapter: DrizzleAdapter(db),
+  adapter: SQLiteDrizzleAdapter(db),
   secret: env.NEXTAUTH_SECRET,
   providers: [
     EmailProvider({
@@ -21,6 +22,14 @@ export const NextAuthConfig = {
   ],
   session: {
     strategy: "jwt",
+  },
+
+  callbacks: {
+    async jwt({ token, trigger, user }) {
+      console.log({ token, trigger, user });
+
+      return token;
+    },
   },
 } satisfies AuthOptions;
 
