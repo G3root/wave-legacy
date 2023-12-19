@@ -23,14 +23,6 @@ export const NextAuthConfig = {
   session: {
     strategy: "jwt",
   },
-
-  callbacks: {
-    async jwt({ token, trigger, user }) {
-      console.log({ token, trigger, user });
-
-      return token;
-    },
-  },
 } satisfies AuthOptions;
 
 export const { handlers, auth, signIn, signOut } = NextAuth(NextAuthConfig);
