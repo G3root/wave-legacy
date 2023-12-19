@@ -26,12 +26,12 @@ export const account = sqliteTable(
     id_token: text("id_token"),
     session_state: text("session_state"),
 
-    createdAt: integer("created_at", { mode: "timestamp" }).default(
-      sql`(strftime('%s', 'now'))`
-    ),
-    updatedAt: integer("updated_at", { mode: "timestamp" }).default(
-      sql`(strftime('%s', 'now'))`
-    ),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(strftime('%s', 'now'))`),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(strftime('%s', 'now'))`),
   },
   (account) => ({
     compoundKey: primaryKey({

@@ -23,12 +23,12 @@ export const membership = sqliteTable(
     invitedName: text("invited_name"),
     invitedEmail: text("invited_email"),
 
-    createdAt: integer("created_at", { mode: "timestamp" }).default(
-      sql`(strftime('%s', 'now'))`
-    ),
-    updatedAt: integer("updated_at", { mode: "timestamp" }).default(
-      sql`(strftime('%s', 'now'))`
-    ),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(strftime('%s', 'now'))`),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(strftime('%s', 'now'))`),
   },
   (t) => ({
     unq: unique().on(t.workspaceId, t.invitedEmail),

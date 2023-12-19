@@ -11,14 +11,16 @@ export const user = sqliteTable("user", {
   email: text("email").notNull(),
   emailVerified: integer("emailVerified", { mode: "timestamp_ms" }),
   image: text("image"),
-  globalRole: text("global_role", { enum: GLOBAL_ROLE }).default("customer"),
+  globalRole: text("global_role", { enum: GLOBAL_ROLE })
+    .notNull()
+    .default("customer"),
 
-  createdAt: integer("created_at", { mode: "timestamp" }).default(
-    sql`(strftime('%s', 'now'))`
-  ),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).default(
-    sql`(strftime('%s', 'now'))`
-  ),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(strftime('%s', 'now'))`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(strftime('%s', 'now'))`),
 });
 
 export const userRelations = relations(user, ({ many }) => ({

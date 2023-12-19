@@ -7,12 +7,12 @@ export const workspace = sqliteTable("workspace", {
   publicId: text("public_id").notNull().unique(),
   name: text("name").notNull(),
 
-  createdAt: integer("created_at", { mode: "timestamp" }).default(
-    sql`(strftime('%s', 'now'))`
-  ),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).default(
-    sql`(strftime('%s', 'now'))`
-  ),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(strftime('%s', 'now'))`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(strftime('%s', 'now'))`),
 });
 
 export const workspaceRelations = relations(workspace, ({ many }) => ({
