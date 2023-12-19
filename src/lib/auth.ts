@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 import type { AuthOptions } from "next-auth";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import { env } from "@/env";
+import { env } from "@/env.mjs";
 
 import { db } from "@/server/db";
 
