@@ -2,7 +2,6 @@ import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 import { relations, sql } from "drizzle-orm";
 import { workspace } from "./workspace.sql";
 import { user } from "./user.sql";
-import { generatePublicId } from "@/lib/public-id";
 
 const MEMBERSHIP_STATUS = ["accepted", "pending", "declined"] as const;
 
@@ -10,10 +9,7 @@ export const membership = sqliteTable(
   "membership",
   {
     id: integer("id").primaryKey(),
-    publicId: text("public_id")
-      .notNull()
-      .unique()
-      .$defaultFn(() => generatePublicId("member")),
+    publicId: text("public_id").notNull().unique(),
     status: text("status", { enum: MEMBERSHIP_STATUS }).default("pending"),
 
     workspaceId: integer("workspace_id")
