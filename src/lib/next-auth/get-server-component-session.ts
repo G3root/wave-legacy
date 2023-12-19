@@ -20,6 +20,9 @@ export const getServerComponentSession = cache(async () => {
     where: eq(userSchema.email, session.user.email),
   });
 
+  if (!user) {
+    throw new Error("No user found");
+  }
   return { user, session };
 });
 
