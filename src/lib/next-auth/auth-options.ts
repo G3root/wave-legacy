@@ -6,7 +6,7 @@ import { env } from "@/env.mjs";
 
 import { db } from "@/server/db";
 
-export const config = {
+export const NextAuthConfig = {
   adapter: DrizzleAdapter(db),
   secret: env.NEXTAUTH_SECRET,
   providers: [
@@ -24,4 +24,4 @@ export const config = {
   },
 } satisfies AuthOptions;
 
-export const { handlers, auth, signIn, signOut } = NextAuth(config);
+export const { handlers, auth, signIn, signOut } = NextAuth(NextAuthConfig);
