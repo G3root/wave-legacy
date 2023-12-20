@@ -10,8 +10,8 @@ import { KyselyAdapter } from "./adapter";
 import {
   createWorkspace,
   getFirstWorkspace,
-} from "@/repository/workspace.repository";
-import { getUserById } from "@/repository/user.repository";
+} from "@/server/repository/workspace.repository";
+import { getUserById } from "@/server/repository/user.repository";
 import { User as User_ } from "@/server/db/types";
 declare module "next-auth" {
   interface User extends User_ {}
