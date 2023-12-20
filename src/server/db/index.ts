@@ -11,3 +11,4 @@ export const db = new KyselyAuth<DB, Codegen>({
   dialect,
   plugins: [new CamelCasePlugin()],
 });
+export type KyselyDB = typeof db;
