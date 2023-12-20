@@ -51,7 +51,7 @@ export function KyselyAdapter(db: Kysely<DB>): Adapter {
   const from = format.from;
   return {
     async createUser(data) {
-      const user = {
+      const user: any = {
         ...data,
         id: crypto.randomUUID(),
         publicId: generatePublicId("user"),
