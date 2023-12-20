@@ -35,6 +35,29 @@ export type Membership = {
   createdAt: Generated<string>;
   updatedAt: Generated<string>;
 };
+export type Project = {
+  id: Generated<number>;
+  publicId: string;
+  name: string;
+  description: string | null;
+  leadId: string | null;
+  workspaceId: number;
+  /**
+   * @kyselyType('backlog' | 'planed' | 'in-progress' | 'paused' | 'completed' | 'cancelled')
+   */
+  status: Generated<
+    "backlog" | "planed" | "in-progress" | "paused" | "completed" | "cancelled"
+  >;
+  startDate: string | null;
+  targetDate: string | null;
+  createdAt: Generated<string>;
+  updatedAt: Generated<string>;
+};
+export type ProjectsOnUsers = {
+  userId: string;
+  projectId: number;
+  assignedAt: Generated<string>;
+};
 export type Session = {
   id: Generated<string>;
   sessionToken: string;
@@ -73,6 +96,8 @@ export type Workspace = {
 export type DB = {
   account: Account;
   membership: Membership;
+  project: Project;
+  projectOnUsers: ProjectsOnUsers;
   session: Session;
   user: User;
   verificationToken: VerificationToken;
