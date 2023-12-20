@@ -56,14 +56,16 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(dbgenerated("(uuid())"))
-  publicId      String    @unique @map("public_id")
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime? @map("email_verified")
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
+  id               String       @id @default(dbgenerated("(uuid())"))
+  publicId         String       @unique @map("public_id")
+  name             String?
+  email            String?      @unique
+  emailVerified    DateTime?    @map("email_verified")
+  image            String?
+  accounts         Account[]
+  sessions         Session[]
+  Membership       Membership[]
+  WorkspaceCreated Workspace[]
 
   /// @kyselyType('customer' | 'super-admin')
   globalRole String @default("customer")
@@ -92,6 +94,9 @@ model Workspace {
   publicId   String       @unique @map("public_id")
   Membership Membership[]
 
+  creator   User?   @relation(fields: [creatorId], references: [id], onDelete: SetNull)
+  creatorId String? @map("creator_id")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @map("updated_at")
 
@@ -102,8 +107,11 @@ model Membership {
   id       Int    @id @default(autoincrement())
   publicId String @unique @map("public_id")
 
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   workspaceId Int       @map("workspace_id")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @map("user_id")
 
   /// @kyselyType('accepted' | 'pending' | 'declined')
   status String @default("pending")
