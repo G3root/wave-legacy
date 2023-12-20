@@ -24,6 +24,7 @@ export type Membership = {
   id: Generated<number>;
   publicId: string;
   workspaceId: number;
+  userId: string;
   /**
    * @kyselyType('accepted' | 'pending' | 'declined')
    */
@@ -65,6 +66,7 @@ export type Workspace = {
   id: Generated<number>;
   name: string;
   publicId: string;
+  creatorId: string | null;
   createdAt: Generated<string>;
   updatedAt: Generated<string>;
 };
