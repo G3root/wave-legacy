@@ -1,11 +1,13 @@
-import { createClient } from "@libsql/client/http";
-import { drizzle } from "drizzle-orm/libsql";
-import * as schema from "./schema";
-import { env } from "@/env.mjs";
+import { Codegen, KyselyAuth } from "@/lib/next-auth/adapter";
+import { DB } from "./types"; // this is the Database interface we defined earlier
+import SQLite from "better-sqlite3";
+import { CamelCasePlugin, SqliteDialect } from "kysely";
 
-const client = createClient({
-  url: env.DATABASE_URL,
-  authToken: env.DATABASE_AUTH_TOKEN,
+const dialect = new SqliteDialect({
+  database: new SQLite("dev.db"),
 });
 
-export const db = drizzle(client, { schema });
+export const db = new KyselyAuth<DB, Codegen>({
+  dialect,
+  plugins: [new CamelCasePlugin()],
+});

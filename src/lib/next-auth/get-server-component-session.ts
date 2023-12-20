@@ -5,8 +5,7 @@ import { cache } from "react";
 
 import { NextAuthConfig } from "./auth-options";
 import { db } from "@/server/db";
-import { eq } from "drizzle-orm";
-import { user as userSchema } from "@/server/db/schema";
+
 import { getServerSession } from "next-auth";
 
 export const getNextAuthSession = () => {
@@ -26,10 +25,11 @@ export const getServerComponentSession = cache(async () => {
     return { user: null, session: null };
   }
 
-  const user = await db.query.user.findFirst({
-    where: eq(userSchema.email, session.user.email),
-  });
-
+  const user = await db
+    .selectFrom("user")
+    .selectAll()
+    .where("email", "=", session.user?.email)
+    .executeTakeFirst();
   if (!user) {
     throw new Error("No user found");
   }

@@ -39,7 +39,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
 
   @@unique([provider, providerAccountId])
   @@map("account")
@@ -69,7 +69,7 @@ model User {
   globalRole String @default("customer")
 
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
 
   @@map("user")
 }
@@ -80,20 +80,20 @@ model VerificationToken {
   expires    DateTime
 
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
 
   @@unique([identifier, token])
   @@map("verification_token")
 }
 
 model Workspace {
-  id       Int    @id @default(autoincrement())
-  name     String
-  publicId String @unique @map("public_id")
-
-  createdAt  DateTime     @default(now()) @map("created_at")
-  updatedAt  DateTime     @updatedAt @map("updated_at")
+  id         Int          @id @default(autoincrement())
+  name       String
+  publicId   String       @unique @map("public_id")
   Membership Membership[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
 
   @@map("workspace")
 }
@@ -114,7 +114,7 @@ model Membership {
   invitedEmail String?   @map("invited_email")
 
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
 
   @@map("membership")
 }

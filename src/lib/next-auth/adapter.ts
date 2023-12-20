@@ -1,18 +1,20 @@
-import { Kysely, SqliteAdapter } from "kysely";
+import { Insertable, Kysely, Selectable } from "kysely";
 
-import type {
-  Adapter,
-  AdapterUser,
-  AdapterAccount,
-  AdapterSession,
-  VerificationToken,
-} from "@auth/core/adapters";
+import type { Adapter } from "next-auth/adapters";
+import { DB, User, Account, Session } from "@/server/db/types";
+import { generatePublicId } from "../public-id";
 
-export interface Database {
-  User: AdapterUser;
-  Account: AdapterAccount;
-  Session: AdapterSession;
-  VerificationToken: VerificationToken;
+type CustomAdapterUser = Selectable<User>;
+type CustomAdapterAccount = Selectable<Account>;
+type CustomAdapterSession = Selectable<Session>;
+type UserUpdate = Insertable<User>;
+type SessionUpdate = Insertable<Session>;
+declare module "next-auth/adapters" {
+  interface AdapterUser extends CustomAdapterUser {}
+
+  interface AdapterAccount extends CustomAdapterAccount {}
+
+  interface AdapterSession extends Omit<CustomAdapterSession, "id"> {}
 }
 
 // https://github.com/honeinc/is-iso-date/blob/master/index.js
@@ -40,23 +42,28 @@ export const format = {
   },
 };
 
-export function KyselyAdapter(db: Kysely<Database>): Adapter {
+export function KyselyAdapter(db: Kysely<DB>): Adapter {
   const { adapter } = db.getExecutor();
   const { supportsReturning } = adapter;
-  const isSqlite = adapter instanceof SqliteAdapter;
-  /** If the database is SQLite, turn dates into an ISO string  */
-  const to = isSqlite ? format.to : <T>(x: T) => x as T;
-  /** If the database is SQLite, turn ISO strings into dates */
-  const from = isSqlite ? format.from : <T>(x: T) => x as T;
+
+  const to = format.to;
+
+  const from = format.from;
   return {
     async createUser(data) {
-      const user = { ...data, id: crypto.randomUUID() };
-      await db.insertInto("User").values(to(user)).executeTakeFirstOrThrow();
+      const user = {
+        ...data,
+        id: crypto.randomUUID(),
+        publicId: generatePublicId("user"),
+        updatedAt: new Date().toISOString(),
+      };
+
+      await db.insertInto("user").values(to(user)).executeTakeFirstOrThrow();
       return user;
     },
     async getUser(id) {
       const result = await db
-        .selectFrom("User")
+        .selectFrom("user")
         .selectAll()
         .where("id", "=", id)
         .executeTakeFirst();
@@ -65,7 +72,7 @@ export function KyselyAdapter(db: Kysely<Database>): Adapter {
     },
     async getUserByEmail(email) {
       const result = await db
-        .selectFrom("User")
+        .selectFrom("user")
         .selectAll()
         .where("email", "=", email)
         .executeTakeFirst();
@@ -74,25 +81,28 @@ export function KyselyAdapter(db: Kysely<Database>): Adapter {
     },
     async getUserByAccount({ providerAccountId, provider }) {
       const result = await db
-        .selectFrom("User")
-        .innerJoin("Account", "User.id", "Account.userId")
-        .selectAll("User")
-        .where("Account.providerAccountId", "=", providerAccountId)
-        .where("Account.provider", "=", provider)
+        .selectFrom("user")
+        .innerJoin("account", "user.id", "account.userId")
+        .selectAll("user")
+        .where("account.providerAccountId", "=", providerAccountId)
+        .where("account.provider", "=", provider)
         .executeTakeFirst();
       if (!result) return null;
       return from(result);
     },
     async updateUser({ id, ...user }) {
-      const userData = to(user);
-      const query = db.updateTable("User").set(userData).where("id", "=", id);
+      const userData: UserUpdate = to({
+        ...user,
+        updatedAt: new Date(),
+      });
+      const query = db.updateTable("user").set(userData).where("id", "=", id);
       const result = supportsReturning
         ? query.returningAll().executeTakeFirstOrThrow()
         : query
             .executeTakeFirstOrThrow()
             .then(() =>
               db
-                .selectFrom("User")
+                .selectFrom("user")
                 .selectAll()
                 .where("id", "=", id)
                 .executeTakeFirstOrThrow()
@@ -101,35 +111,35 @@ export function KyselyAdapter(db: Kysely<Database>): Adapter {
     },
     async deleteUser(userId) {
       await db
-        .deleteFrom("User")
-        .where("User.id", "=", userId)
+        .deleteFrom("user")
+        .where("user.id", "=", userId)
         .executeTakeFirst();
     },
     async linkAccount(account) {
       await db
-        .insertInto("Account")
+        .insertInto("account")
         .values(to(account))
         .executeTakeFirstOrThrow();
       return account;
     },
     async unlinkAccount({ providerAccountId, provider }) {
       await db
-        .deleteFrom("Account")
-        .where("Account.providerAccountId", "=", providerAccountId)
-        .where("Account.provider", "=", provider)
+        .deleteFrom("account")
+        .where("account.providerAccountId", "=", providerAccountId)
+        .where("account.provider", "=", provider)
         .executeTakeFirstOrThrow();
     },
     async createSession(session) {
-      await db.insertInto("Session").values(to(session)).execute();
+      await db.insertInto("session").values(to(session)).execute();
       return session;
     },
     async getSessionAndUser(sessionToken) {
       const result = await db
-        .selectFrom("Session")
-        .innerJoin("User", "User.id", "Session.userId")
-        .selectAll("User")
-        .select(["Session.expires", "Session.userId"])
-        .where("Session.sessionToken", "=", sessionToken)
+        .selectFrom("session")
+        .innerJoin("user", "user.id", "session.userId")
+        .selectAll("user")
+        .select(["session.expires", "session.userId"])
+        .where("session.sessionToken", "=", sessionToken)
         .executeTakeFirst();
       if (!result) return null;
       const { userId, expires, ...user } = result;
@@ -137,42 +147,42 @@ export function KyselyAdapter(db: Kysely<Database>): Adapter {
       return { user: from(user), session: from(session) };
     },
     async updateSession(session) {
-      const sessionData = to(session);
+      const sessionData: SessionUpdate = to(session);
       const query = db
-        .updateTable("Session")
+        .updateTable("session")
         .set(sessionData)
-        .where("Session.sessionToken", "=", session.sessionToken);
+        .where("session.sessionToken", "=", session.sessionToken);
       const result = supportsReturning
         ? await query.returningAll().executeTakeFirstOrThrow()
         : await query.executeTakeFirstOrThrow().then(async () => {
             return await db
-              .selectFrom("Session")
+              .selectFrom("session")
               .selectAll()
-              .where("Session.sessionToken", "=", sessionData.sessionToken)
+              .where("session.sessionToken", "=", sessionData.sessionToken)
               .executeTakeFirstOrThrow();
           });
       return from(result);
     },
     async deleteSession(sessionToken) {
       await db
-        .deleteFrom("Session")
-        .where("Session.sessionToken", "=", sessionToken)
+        .deleteFrom("session")
+        .where("session.sessionToken", "=", sessionToken)
         .executeTakeFirstOrThrow();
     },
     async createVerificationToken(data) {
-      await db.insertInto("VerificationToken").values(to(data)).execute();
+      await db.insertInto("verificationToken").values(to(data)).execute();
       return data;
     },
     async useVerificationToken({ identifier, token }) {
       const query = db
-        .deleteFrom("VerificationToken")
-        .where("VerificationToken.token", "=", token)
-        .where("VerificationToken.identifier", "=", identifier);
+        .deleteFrom("verificationToken")
+        .where("verificationToken.token", "=", token)
+        .where("verificationToken.identifier", "=", identifier);
 
       const result = supportsReturning
         ? await query.returningAll().executeTakeFirst()
         : await db
-            .selectFrom("VerificationToken")
+            .selectFrom("verificationToken")
             .selectAll()
             .where("token", "=", token)
             .executeTakeFirst()
@@ -194,8 +204,8 @@ export function KyselyAdapter(db: Kysely<Database>): Adapter {
  * the second generic argument. The generated types will be used, and
  * `KyselyAuth` will only verify that the correct fields exist.
  */
-export class KyselyAuth<DB extends T, T = Database> extends Kysely<DB> {}
+export class KyselyAuth<DB extends T, T = DB> extends Kysely<DB> {}
 
 export type Codegen = {
-  [K in keyof Database]: { [J in keyof Database[K]]: unknown };
+  [K in keyof DB]: { [J in keyof DB[K]]: unknown };
 };

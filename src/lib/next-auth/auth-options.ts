@@ -5,10 +5,25 @@ import type { AuthOptions } from "next-auth";
 import { env } from "@/env.mjs";
 
 import { db } from "@/server/db";
-import { SQLiteDrizzleAdapter } from "./adapter";
+import { KyselyAdapter } from "./adapter";
+import { DefaultSession } from "next-auth";
+
+declare module "next-auth" {
+  interface Session {
+    user: {
+      workspaceId: string;
+    } & DefaultSession["user"];
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    workspaceId: string;
+  }
+}
 
 export const NextAuthConfig = {
-  adapter: SQLiteDrizzleAdapter(db),
+  adapter: KyselyAdapter(db),
   secret: env.NEXTAUTH_SECRET,
   providers: [
     EmailProvider({
