@@ -1,0 +1,123 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator kysely {
+  provider = "prisma-kysely"
+
+  // Optionally provide a destination directory for the generated file
+  // and a filename of your choice
+  output       = "../src/server/db"
+  fileName     = "types.ts"
+  // Optionally generate runtime enums to a separate file
+  enumFileName = "enums.ts"
+  camelCase    = "true"
+}
+
+model Account {
+  id                String  @id @default(dbgenerated("(uuid())"))
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([provider, providerAccountId])
+  @@map("account")
+}
+
+model Session {
+  id           String   @id @default(dbgenerated("(uuid())"))
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("session")
+}
+
+model User {
+  id            String    @id @default(dbgenerated("(uuid())"))
+  publicId      String    @unique @map("public_id")
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+
+  /// @kyselyType('customer' | 'super-admin')
+  globalRole String @default("customer")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("user")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([identifier, token])
+  @@map("verification_token")
+}
+
+model Workspace {
+  id       Int    @id @default(autoincrement())
+  name     String
+  publicId String @unique @map("public_id")
+
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+  Membership Membership[]
+
+  @@map("workspace")
+}
+
+model Membership {
+  id       Int    @id @default(autoincrement())
+  publicId String @unique @map("public_id")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspaceId Int       @map("workspace_id")
+
+  /// @kyselyType('accepted' | 'pending' | 'declined')
+  status String @default("pending")
+
+  joinedAt     DateTime? @map("joined_at")
+  // When the user joins, we will clear out the name and email and set the user.
+  invitedName  String?   @map("invited_name")
+  invitedEmail String?   @map("invited_email")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("membership")
+}
