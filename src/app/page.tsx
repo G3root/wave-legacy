@@ -5,7 +5,7 @@ export default async function Home() {
   const session = await getNextAuthSession();
 
   if (session?.user) {
-    redirect(`/${session.user.wsId}`);
+    redirect(`/${session.user.wsPbId}`);
   }
 
   return <main className="text-red-800">hello world</main>;

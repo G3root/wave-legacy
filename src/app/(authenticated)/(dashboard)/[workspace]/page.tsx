@@ -7,7 +7,7 @@ export default async function WorkspacePage({
 }) {
   const session = await getRequiredNextAuthSession();
 
-  if (params.workspace !== session.user.wsId) {
+  if (params.workspace !== session.user.wsPbId) {
     throw new Error("unauthorized");
   }
 

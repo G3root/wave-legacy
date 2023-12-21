@@ -23,12 +23,12 @@ export const countWorkspaces = (db: KyselyDB, publicId: string) => {
 
 interface createWorkspaceOptions {
   workspaceName?: string | null | undefined;
-  userId: string;
+  userPublicId: string;
 }
 
 export const createWorkspace = async (
   db: KyselyDB,
-  { userId, workspaceName: workspaceName_ }: createWorkspaceOptions
+  { userPublicId, workspaceName: workspaceName_ }: createWorkspaceOptions
 ) => {
   const workspaceName = workspaceName_ ?? uniqueNamesGenerator(config);
 
@@ -37,7 +37,7 @@ export const createWorkspace = async (
     .values({
       name: workspaceName,
       publicId: generatePublicId("workspace"),
-      creatorId: userId,
+      creatorId: userPublicId,
     })
     .returning(["id", "name", "publicId"])
     .executeTakeFirstOrThrow();
@@ -46,10 +46,10 @@ export const createWorkspace = async (
     .insertInto("membership")
     .values({
       publicId: generatePublicId("member"),
-      workspaceId: workspace.id,
+      workspaceId: workspace.publicId,
       status: "accepted",
       joinedAt: new Date().toISOString(),
-      userId,
+      userId: userPublicId,
     })
     .returning(["id", "publicId"])
     .executeTakeFirstOrThrow();
@@ -57,11 +57,18 @@ export const createWorkspace = async (
   return { workspace, membership };
 };
 
-export const getFirstWorkspace = async (db: KyselyDB, userId: string) => {
+interface getFirstWorkspaceOptions {
+  userPublicId: string;
+}
+
+export const getFirstWorkspace = async (
+  db: KyselyDB,
+  { userPublicId }: getFirstWorkspaceOptions
+) => {
   return await db
     .selectFrom("workspace")
     .innerJoin("membership as p", "p.workspaceId", "workspace.id")
-    .where("p.userId", "=", userId)
+    .where("p.userId", "=", userPublicId)
     .selectAll("workspace")
     .limit(1)
     .executeTakeFirstOrThrow();

@@ -11,14 +11,14 @@ import {
   createWorkspace,
   getFirstWorkspace,
 } from "@/server/repository/workspace.repository";
-import { getUserById } from "@/server/repository/user.repository";
+import { getUserByPublicId } from "@/server/repository/user.repository";
 import { User as User_ } from "@/server/db/types";
 declare module "next-auth" {
   interface User extends User_ {}
   interface Session {
     user: {
-      wsId: string;
-      publicId: string;
+      wsPbId: string;
+      usrPbId: string;
       name?: string | null;
       email?: string | null;
     };
@@ -27,8 +27,8 @@ declare module "next-auth" {
 
 declare module "next-auth/jwt" {
   interface JWT {
-    wsId: string;
-    publicId: string;
+    wsPbId: string;
+    usrPbId: string;
   }
 }
 
@@ -51,26 +51,34 @@ export const NextAuthConfig = {
 
   callbacks: {
     session({ session, token }) {
-      session.user.wsId = token?.wsId;
-      session.user.publicId = token?.publicId;
+      session.user.wsPbId = token?.wsPbId;
+      session.user.usrPbId = token?.usrPbId;
       return session;
     },
     async jwt({ token, trigger, user }) {
       if (trigger === "signUp" && user.id) {
-        const userId = user.id;
-        const { publicId } = await getUserById(db, userId);
-        const { workspace } = await createWorkspace(db, {
-          userId,
+        const userPublicId = user.publicId;
+
+        const { publicId: usrPbId } = await getUserByPublicId(db, userPublicId);
+
+        const {
+          workspace: { publicId: wsPbId },
+        } = await createWorkspace(db, {
+          userPublicId,
           workspaceName: user.name,
         });
-        token.wsId = workspace.publicId;
-        token.publicId = publicId;
+
+        token.wsPbId = wsPbId;
+        token.usrPbId = usrPbId;
       }
 
       if (user && trigger === "signIn") {
-        const workspace = await getFirstWorkspace(db, user.id);
-        token.wsId = workspace.publicId;
-        token.publicId = user.publicId;
+        const userPublicId = user.publicId;
+        const { publicId: wsPbId } = await getFirstWorkspace(db, {
+          userPublicId,
+        });
+        token.wsPbId = wsPbId;
+        token.usrPbId = userPublicId;
       }
 
       return token;

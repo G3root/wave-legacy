@@ -23,7 +23,7 @@ export type Account = {
 export type Membership = {
   id: Generated<number>;
   publicId: string;
-  workspaceId: number;
+  workspaceId: string;
   userId: string;
   /**
    * @kyselyType('accepted' | 'pending' | 'declined')
@@ -41,7 +41,7 @@ export type Project = {
   name: string;
   description: string | null;
   leadId: string | null;
-  workspaceId: number;
+  workspaceId: string;
   /**
    * @kyselyType('backlog' | 'planed' | 'in-progress' | 'paused' | 'completed' | 'cancelled')
    */
@@ -55,7 +55,7 @@ export type Project = {
 };
 export type ProjectsOnUsers = {
   userId: string;
-  projectId: number;
+  projectId: string;
   assignedAt: Generated<string>;
 };
 export type Session = {
