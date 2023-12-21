@@ -14,7 +14,7 @@ export default async function AuthenticatedLayout({
   const session = await getNextAuthSession();
 
   if (!session) {
-    redirect("/signin");
+    redirect("/");
   }
 
   return <>{children}</>;

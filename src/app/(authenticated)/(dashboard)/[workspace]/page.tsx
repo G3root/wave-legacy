@@ -1,15 +1,3 @@
-import { getRequiredNextAuthSession } from "@/lib/next-auth/get-server-component-session";
-
-export default async function WorkspacePage({
-  params,
-}: {
-  params: { workspace: string };
-}) {
-  const session = await getRequiredNextAuthSession();
-
-  if (params.workspace !== session.user.wsPbId) {
-    throw new Error("unauthorized");
-  }
-
+export default async function WorkspacePage() {
   return <main className="text-red-800">hello world</main>;
 }
