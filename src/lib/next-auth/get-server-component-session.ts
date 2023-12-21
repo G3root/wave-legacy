@@ -1,5 +1,4 @@
 "use server";
-import invariant from "tiny-invariant";
 
 import { cache } from "react";
 
@@ -14,7 +13,10 @@ export const getNextAuthSession = () => {
 
 export const getRequiredNextAuthSession = async () => {
   const session = await getNextAuthSession();
-  invariant(session, "Session not found");
+
+  if (!session) {
+    throw new Error("Session not found");
+  }
   return session;
 };
 
