@@ -9,6 +9,7 @@ const PREFIX = {
   user: "usr",
   workspace: "ws",
   member: "mbr",
+  project: "pro",
 } as const;
 
 export function generatePublicId(key: keyof typeof PREFIX) {
