@@ -26,7 +26,7 @@ export function SideBar({ className }: SideBarProps) {
     },
     {
       label: "Projects",
-      active: false,
+      active: segments?.length === 2 && segments[1] === "projects",
       Icon: FolderKanban,
     },
     {
